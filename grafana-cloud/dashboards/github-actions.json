@@ -1,7 +1,11 @@
 {
   "uid": "github-actions",
-  "title": "GitHub Actions Workflows",
-  "tags": ["github", "actions", "workflows"],
+  "title": "GitHub Actions - Project Status",
+  "tags": [
+    "github",
+    "actions",
+    "cicd"
+  ],
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 0,
@@ -9,20 +13,138 @@
     {
       "id": 1,
       "type": "stat",
-      "title": "Workflow Success Rate",
+      "title": "Total Projects",
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 4,
+        "w": 6,
         "x": 0,
         "y": 0
       },
       "targets": [
         {
-          "expr": "sum(github_workflow_run_status{status=\"1\"}) / sum(github_workflow_run_status) * 100",
+          "expr": "count(count by (repo) (github_actions_workflow_run_status))",
           "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus-cicd"
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "blue"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Active Workflows",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "count(github_actions_workflow_run_status{status=\"in_progress\"})",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "yellow"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Failed Workflows",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "count(github_actions_workflow_run_status{status=\"failure\"})",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 1,
+                "color": "red"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Success Rate (24h)",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "sum(github_actions_workflow_run_status{status=\"success\"}) / sum(github_actions_workflow_run_status{status=~\"success|failure\"}) * 100",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
           }
         }
       ],
@@ -30,30 +152,291 @@
         "defaults": {
           "unit": "percent",
           "min": 0,
-          "max": 100
+          "max": 100,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "red"
+              },
+              {
+                "value": 80,
+                "color": "yellow"
+              },
+              {
+                "value": 95,
+                "color": "green"
+              }
+            ]
+          }
         }
       }
     },
     {
-      "id": 2,
-      "type": "timeseries",
-      "title": "Workflow Runs Over Time",
+      "id": 5,
+      "type": "table",
+      "title": "Project Status Overview",
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 4
       },
       "targets": [
         {
-          "expr": "sum by (status) (rate(github_workflow_run_status[5m]))",
+          "expr": "github_actions_workflow_run_status",
           "refId": "A",
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus-cicd"
+            "uid": "prometheus"
+          },
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "status"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "success": {
+                        "text": "✓ Success",
+                        "color": "green"
+                      },
+                      "failure": {
+                        "text": "✗ Failed",
+                        "color": "red"
+                      },
+                      "in_progress": {
+                        "text": "⟳ Running",
+                        "color": "yellow"
+                      },
+                      "cancelled": {
+                        "text": "○ Cancelled",
+                        "color": "orange"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "repo"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 300
+              },
+              {
+                "id": "displayName",
+                "value": "Repository"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "workflow"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 250
+              },
+              {
+                "id": "displayName",
+                "value": "Workflow"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "status"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              },
+              {
+                "id": "displayName",
+                "value": "Status"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "event"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 100
+              },
+              {
+                "id": "displayName",
+                "value": "Event"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "head_branch"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              },
+              {
+                "id": "displayName",
+                "value": "Branch"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "__name__": true,
+              "instance": true,
+              "job": true,
+              "Value": true,
+              "Time": true
+            },
+            "indexByName": {
+              "repo": 0,
+              "workflow": 1,
+              "status": 2,
+              "event": 3,
+              "head_branch": 4
+            },
+            "renameByName": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "repo",
+                "desc": false
+              }
+            ]
           }
         }
-      ]
+      ],
+      "options": {
+        "showHeader": true,
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Workflow Status Over Time",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "targets": [
+        {
+          "expr": "sum by (repo, status) (github_actions_workflow_run_status)",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "legendFormat": "{{repo}} - {{status}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10,
+            "showPoints": "auto"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "last"
+          ]
+        }
+      }
     }
   ],
   "templating": {
@@ -66,6 +449,19 @@
           "text": "Prometheus",
           "value": "prometheus"
         }
+      },
+      {
+        "name": "repo",
+        "type": "query",
+        "label": "Repository",
+        "query": "label_values(github_actions_workflow_run_status, repo)",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*"
       }
     ]
   },
