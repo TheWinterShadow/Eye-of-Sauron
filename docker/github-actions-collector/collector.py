@@ -104,6 +104,27 @@ class GitHubClient:
 
         return all_runs
 
+    def get_workflows(self, repo: str):
+        url = f"{self.BASE_URL}/repos/{repo}/actions/workflows?per_page=100"
+        all_workflows = []
+        while url:
+            data, link_header = self._request(url)
+            workflows = data.get("workflows", [])
+            if not workflows:
+                break
+            all_workflows.extend(workflows)
+            url = self._parse_next_url(link_header)
+        return all_workflows
+
+    def get_latest_workflow_run(self, repo: str, workflow_id: int):
+        url = (
+            f"{self.BASE_URL}/repos/{repo}/actions/workflows"
+            f"/{workflow_id}/runs?status=completed&per_page=1"
+        )
+        data, _ = self._request(url)
+        runs = data.get("workflow_runs", [])
+        return runs[0] if runs else None
+
 
 # ---------------------------------------------------------------------------
 # Loki Push Client
@@ -248,6 +269,23 @@ class Collector:
         log.info("Received signal %d, shutting down", signum)
         self.running = False
 
+    def _fetch_latest_per_workflow(self, repo: str):
+        """Fetch the latest completed run for each workflow in a repo."""
+        workflows = self.github.get_workflows(repo)
+        runs = []
+        for wf in workflows:
+            try:
+                latest = self.github.get_latest_workflow_run(repo, wf["id"])
+                if latest:
+                    runs.append(latest)
+            except Exception:
+                log.warning(
+                    "Failed to fetch latest run for %s workflow %s",
+                    repo,
+                    wf.get("name", wf["id"]),
+                )
+        return runs
+
     def poll_once(self):
         total_new = 0
         all_entries = []
@@ -255,7 +293,9 @@ class Collector:
         repo_updates = {}
 
         # Loki rejects entries older than ~7 days on the free tier.
-        # Use a 6-day cutoff to provide a safety margin.
+        # For old entries, we remap the Loki timestamp to "now" so Loki
+        # accepts them. The real timestamps are preserved in the JSON payload.
+        now_ns = str(int(datetime.now(timezone.utc).timestamp() * 1_000_000_000))
         min_timestamp_ns = str(
             int(
                 (datetime.now(timezone.utc) - timedelta(days=6)).timestamp()
@@ -268,37 +308,37 @@ class Collector:
                 last_updated = self.state.get_last_updated(repo)
 
                 if last_updated is None:
-                    since = (
-                        datetime.now(timezone.utc)
-                        - timedelta(days=self.config.backfill_days)
-                    ).strftime("%Y-%m-%dT%H:%M:%SZ")
-                    log.info("First run for %s, backfilling from %s", repo, since)
+                    # First run: fetch latest completed run per workflow
+                    new_runs = self._fetch_latest_per_workflow(repo)
+                    log.info(
+                        "First run for %s: %d workflows with completed runs",
+                        repo,
+                        len(new_runs),
+                    )
                 else:
-                    since = last_updated
+                    runs = self.github.get_workflow_runs(repo, since=last_updated)
+                    new_runs = [
+                        r for r in runs if r["updated_at"] > last_updated
+                    ]
 
-                runs = self.github.get_workflow_runs(repo, since=since)
-                if not runs:
-                    continue
-
-                new_runs = [
-                    r
-                    for r in runs
-                    if not last_updated or r["updated_at"] > last_updated
-                ]
                 if not new_runs:
                     continue
 
                 entries = [process_run(r) for r in new_runs]
 
-                # Filter out entries too old for Loki ingestion
-                before_filter = len(entries)
-                entries = [e for e in entries if e["timestamp_ns"] >= min_timestamp_ns]
-                if before_filter != len(entries):
+                # Remap timestamps outside Loki's window to current time.
+                # Each gets a 1ns offset to ensure uniqueness.
+                remapped = 0
+                for entry in entries:
+                    if entry["timestamp_ns"] < min_timestamp_ns:
+                        entry["timestamp_ns"] = str(int(now_ns) + remapped)
+                        remapped += 1
+                if remapped:
                     log.info(
-                        "%s: filtered %d/%d entries (too old for Loki)",
+                        "%s: remapped %d/%d timestamps (outside Loki window)",
                         repo,
-                        before_filter - len(entries),
-                        before_filter,
+                        remapped,
+                        len(entries),
                     )
 
                 all_entries.extend(entries)
@@ -306,7 +346,7 @@ class Collector:
                 max_updated = max(r["updated_at"] for r in new_runs)
                 repo_updates[repo] = max_updated
                 total_new += len(new_runs)
-                log.info("%s: %d new runs (%d within Loki window)", repo, len(new_runs), len(entries))
+                log.info("%s: %d runs", repo, len(new_runs))
 
             except Exception:
                 log.exception("Error polling %s", repo)

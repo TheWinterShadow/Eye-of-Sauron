@@ -3,7 +3,7 @@ set -e
 
 # Set defaults
 export POLL_INTERVAL="${POLL_INTERVAL:-300}"
-export BACKFILL_DAYS="${BACKFILL_DAYS:-30}"
+export BACKFILL_DAYS="${BACKFILL_DAYS:-7}"
 export STATE_FILE="${STATE_FILE:-/data/collector_state.json}"
 export LOG_LEVEL="${LOG_LEVEL:-INFO}"
 
@@ -109,7 +109,7 @@ export RESOLVED_REPOS
 repo_count=$(echo "$RESOLVED_REPOS" | tr ',' '\n' | wc -l | tr -d ' ')
 echo "Resolved $repo_count repositories"
 echo "Poll interval: ${POLL_INTERVAL}s"
-echo "Backfill days: ${BACKFILL_DAYS}"
+echo "First run: fetches latest run per workflow (no date limit)"
 echo "Starting GitHub Actions Collector..."
 
 exec python3 /app/collector.py
