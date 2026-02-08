@@ -29,7 +29,7 @@ class Config:
         self.loki_user = os.environ["LOKI_USER"]
         self.loki_api_key = os.environ["LOKI_API_KEY"]
         self.poll_interval = int(os.getenv("POLL_INTERVAL", "300"))
-        self.backfill_days = int(os.getenv("BACKFILL_DAYS", "30"))
+        self.backfill_days = int(os.getenv("BACKFILL_DAYS", "7"))
         self.state_file = Path(os.getenv("STATE_FILE", "/data/collector_state.json"))
         self.log_level = os.getenv("LOG_LEVEL", "INFO")
 
@@ -251,6 +251,17 @@ class Collector:
     def poll_once(self):
         total_new = 0
         all_entries = []
+        # Track max_updated per repo; only commit to state after push succeeds
+        repo_updates = {}
+
+        # Loki rejects entries older than ~7 days on the free tier.
+        # Use a 6-day cutoff to provide a safety margin.
+        min_timestamp_ns = str(
+            int(
+                (datetime.now(timezone.utc) - timedelta(days=6)).timestamp()
+                * 1_000_000_000
+            )
+        )
 
         for repo in self.config.repos:
             try:
@@ -278,12 +289,24 @@ class Collector:
                     continue
 
                 entries = [process_run(r) for r in new_runs]
+
+                # Filter out entries too old for Loki ingestion
+                before_filter = len(entries)
+                entries = [e for e in entries if e["timestamp_ns"] >= min_timestamp_ns]
+                if before_filter != len(entries):
+                    log.info(
+                        "%s: filtered %d/%d entries (too old for Loki)",
+                        repo,
+                        before_filter - len(entries),
+                        before_filter,
+                    )
+
                 all_entries.extend(entries)
 
                 max_updated = max(r["updated_at"] for r in new_runs)
-                self.state.set_last_updated(repo, max_updated)
+                repo_updates[repo] = max_updated
                 total_new += len(new_runs)
-                log.info("%s: %d new runs", repo, len(new_runs))
+                log.info("%s: %d new runs (%d within Loki window)", repo, len(new_runs), len(entries))
 
             except Exception:
                 log.exception("Error polling %s", repo)
@@ -293,7 +316,11 @@ class Collector:
             for i in range(0, len(all_entries), self.BATCH_SIZE):
                 self.loki.push(all_entries[i : i + self.BATCH_SIZE])
 
+        # Only update state after successful push
+        for repo, max_updated in repo_updates.items():
+            self.state.set_last_updated(repo, max_updated)
         self.state.save()
+
         log.info(
             "Poll complete: %d new runs across %d repos (rate remaining: %d)",
             total_new,
