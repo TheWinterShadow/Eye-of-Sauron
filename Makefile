@@ -1,4 +1,4 @@
-.PHONY: help build-local test-github test-alloy bump-patch bump-minor bump-major
+.PHONY: help build-local test-github test-alloy test-collector bump-patch bump-minor bump-major
 
 .DEFAULT_GOAL := help
 
@@ -9,9 +9,13 @@ help: ## Show available commands
 build-local: ## Build all images locally (for testing)
 	docker build -t github-actions-exporter:local docker/github-actions-exporter/
 	docker build -t grafana-alloy:local docker/grafana-alloy/
+	docker build -t github-actions-collector:local docker/github-actions-collector/
 
 test-github: ## Test GitHub Actions exporter locally
 	docker run --rm --env-file .env github-actions-exporter:local
+
+test-collector: ## Test GitHub Actions collector locally
+	docker run --rm --env-file .env github-actions-collector:local
 
 test-alloy: ## Test Grafana Alloy config validation
 	docker run --rm -v $(PWD)/docker/grafana-alloy/config.alloy:/etc/alloy/config.alloy \

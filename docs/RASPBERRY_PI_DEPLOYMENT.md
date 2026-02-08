@@ -7,7 +7,7 @@ This repository does NOT manage the Pi deployment - it only builds and publishes
 ## Prerequisites on Raspberry Pi
 - Docker installed (ARM64 version)
 - Docker network created: `docker network create monitoring`
-- Docker volume created: `docker volume create alloy_data`
+- Docker volumes created: `docker volume create alloy_data && docker volume create collector_data`
 - `.env` file with secrets (see .env.example)
 
 ## Deployment Commands
@@ -15,13 +15,14 @@ This repository does NOT manage the Pi deployment - it only builds and publishes
 ### 1. Pull latest images
 ```bash
 docker pull thewintershadow/github-actions-exporter:latest
+docker pull thewintershadow/github-actions-collector:latest
 docker pull thewintershadow/grafana-alloy:latest
 ```
 
 ### 2. Stop and remove old containers
 ```bash
-docker stop github-actions-exporter grafana-alloy || true
-docker rm github-actions-exporter grafana-alloy || true
+docker stop github-actions-exporter github-actions-collector grafana-alloy || true
+docker rm github-actions-exporter github-actions-collector grafana-alloy || true
 ```
 
 ### 3. Run GitHub Actions Exporter
@@ -34,7 +35,18 @@ docker run -d \
   thewintershadow/github-actions-exporter:latest
 ```
 
-### 4. Run Grafana Alloy
+### 4. Run GitHub Actions Collector
+```bash
+docker run -d \
+  --name github-actions-collector \
+  --network monitoring \
+  --env-file .env \
+  -v collector_data:/data \
+  --restart unless-stopped \
+  thewintershadow/github-actions-collector:latest
+```
+
+### 5. Run Grafana Alloy
 ```bash
 docker run -d \
   --name grafana-alloy \
@@ -57,11 +69,12 @@ curl http://localhost:12345/ready
 # View logs
 docker logs grafana-alloy
 docker logs github-actions-exporter
+docker logs github-actions-collector
 ```
 
 ## Update Process
 When new images are available:
-1. Run steps 1-5 above
+1. Run steps 1-6 above
 2. Containers will restart with new configuration
 
 ## Rollback

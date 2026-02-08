@@ -20,6 +20,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       github_changed: ${{ steps.changes.outputs.github }}
       alloy_changed: ${{ steps.changes.outputs.alloy }}
+      collector_changed: ${{ steps.changes.outputs.collector }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,10 +50,17 @@ jobs:
             echo "alloy=false" >> $GITHUB_OUTPUT
           fi
 
+          if git diff --name-only HEAD~1 HEAD | grep -q '^docker/github-actions-collector/'; then
+            echo "collector=true" >> $GITHUB_OUTPUT
+          else
+            echo "collector=false" >> $GITHUB_OUTPUT
+          fi
+
           # If VERSION file changed, rebuild all
           if git diff --name-only HEAD~1 HEAD | grep -q '^VERSION$'; then
             echo "github=true" >> $GITHUB_OUTPUT
             echo "alloy=true" >> $GITHUB_OUTPUT
+            echo "collector=true" >> $GITHUB_OUTPUT
           fi
 
   build-github-actions-exporter:
@@ -118,3 +126,35 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/grafana-alloy:${{ needs.prepare.outputs.version }}
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/grafana-alloy:buildcache
           cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/grafana-alloy:buildcache,mode=max
+
+  build-github-actions-collector:
+    needs: prepare
+    if: needs.prepare.outputs.collector_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./docker/github-actions-collector
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-collector:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-collector:${{ needs.prepare.outputs.version }}
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/github-actions-collector:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/github-actions-collector:buildcache,mode=max

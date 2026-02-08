@@ -1,0 +1,10 @@
+{
+  "uid": "loki-cicd",
+  "name": "Loki (CI/CD Logs)",
+  "type": "loki",
+  "access": "proxy",
+  "isDefault": false,
+  "jsonData": {},
+  "secureJsonData": {},
+  "readOnly": false
+}
