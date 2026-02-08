@@ -14,7 +14,7 @@
     {
       "id": 1,
       "type": "stat",
-      "title": "Active Projects (30d)",
+      "title": "Active Projects",
       "gridPos": {
         "h": 4,
         "w": 8,
@@ -23,8 +23,9 @@
       },
       "targets": [
         {
-          "expr": "count(count by (repo) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json [$__range])))",
+          "expr": "count(sum by (repo) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json repo [$__range])))",
           "refId": "A",
+          "queryType": "instant",
           "datasource": {
             "type": "loki",
             "uid": "${datasource}"
@@ -66,8 +67,8 @@
     {
       "id": 2,
       "type": "stat",
-      "title": "Healthy Projects",
-      "description": "Projects with zero failures in the time range",
+      "title": "Success Rate",
+      "description": "Percentage of successful runs across all projects",
       "gridPos": {
         "h": 4,
         "w": 8,
@@ -76,8 +77,9 @@
       },
       "targets": [
         {
-          "expr": "count(count by (repo) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json [$__range]))) - count(count by (repo) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json | conclusion=~\"failure|cancelled\" [$__range])))",
+          "expr": "sum(count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json conclusion | conclusion=\"success\" [$__range])) / sum(count_over_time({job=\"github-actions-collector\", org=~\"$org\"} [$__range]))",
           "refId": "A",
+          "queryType": "instant",
           "datasource": {
             "type": "loki",
             "uid": "${datasource}"
@@ -86,7 +88,7 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
+          "unit": "percentunit",
           "color": {
             "mode": "thresholds"
           },
@@ -95,6 +97,14 @@
             "steps": [
               {
                 "value": null,
+                "color": "red"
+              },
+              {
+                "value": 0.8,
+                "color": "yellow"
+              },
+              {
+                "value": 0.95,
                 "color": "green"
               }
             ]
@@ -128,8 +138,9 @@
       },
       "targets": [
         {
-          "expr": "count(count by (repo) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json | conclusion=~\"failure|cancelled\" [$__range])))",
+          "expr": "count(sum by (repo) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json conclusion | conclusion=~\"failure|cancelled\" [$__range])))",
           "refId": "A",
+          "queryType": "instant",
           "datasource": {
             "type": "loki",
             "uid": "${datasource}"
@@ -175,7 +186,7 @@
     {
       "id": 4,
       "type": "table",
-      "title": "Latest Run Per Project",
+      "title": "Latest Run Per Workflow",
       "gridPos": {
         "h": 14,
         "w": 24,
@@ -223,22 +234,22 @@
                     "type": "value",
                     "options": {
                       "success": {
-                        "text": "✓ Success",
+                        "text": "Success",
                         "color": "green",
                         "index": 0
                       },
                       "failure": {
-                        "text": "✗ Failed",
+                        "text": "Failed",
                         "color": "red",
                         "index": 1
                       },
                       "cancelled": {
-                        "text": "⊘ Cancelled",
+                        "text": "Cancelled",
                         "color": "yellow",
                         "index": 2
                       },
                       "skipped": {
-                        "text": "○ Skipped",
+                        "text": "Skipped",
                         "color": "orange",
                         "index": 3
                       }
@@ -516,10 +527,8 @@
                 "operation": "groupby"
               },
               "workflow": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
-                "operation": "aggregate"
+                "aggregations": [],
+                "operation": "groupby"
               },
               "conclusion": {
                 "aggregations": [
@@ -589,7 +598,7 @@
           "options": {
             "indexByName": {
               "repo": 0,
-              "workflow (lastNotNull)": 1,
+              "workflow": 1,
               "conclusion (lastNotNull)": 2,
               "branch (lastNotNull)": 3,
               "duration_seconds (lastNotNull)": 4,
@@ -600,7 +609,6 @@
               "html_url (lastNotNull)": 9
             },
             "renameByName": {
-              "workflow (lastNotNull)": "workflow",
               "conclusion (lastNotNull)": "conclusion",
               "branch (lastNotNull)": "branch",
               "duration_seconds (lastNotNull)": "duration_seconds",
@@ -639,27 +647,30 @@
       },
       "targets": [
         {
-          "expr": "sum by (repo) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json [$__range]))",
+          "expr": "sum by (repo) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json repo [$__range]))",
           "refId": "A",
           "legendFormat": "{{repo}}",
+          "queryType": "instant",
           "datasource": {
             "type": "loki",
             "uid": "${datasource}"
           }
         },
         {
-          "expr": "sum by (repo) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json | conclusion=\"success\" [$__range]))",
+          "expr": "sum by (repo) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json repo, conclusion | conclusion=\"success\" [$__range]))",
           "refId": "B",
           "legendFormat": "{{repo}}",
+          "queryType": "instant",
           "datasource": {
             "type": "loki",
             "uid": "${datasource}"
           }
         },
         {
-          "expr": "avg by (repo) (avg_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json | unwrap duration_seconds [$__range]))",
+          "expr": "avg by (repo) (avg_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json repo, duration_seconds | unwrap duration_seconds [$__range]))",
           "refId": "C",
           "legendFormat": "{{repo}}",
+          "queryType": "instant",
           "datasource": {
             "type": "loki",
             "uid": "${datasource}"
@@ -875,9 +886,10 @@
       },
       "targets": [
         {
-          "expr": "sum by (conclusion) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json [$__interval]))",
+          "expr": "sum by (conclusion) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json conclusion [$__interval]))",
           "refId": "A",
           "legendFormat": "{{conclusion}}",
+          "queryType": "range",
           "datasource": {
             "type": "loki",
             "uid": "${datasource}"
@@ -992,7 +1004,7 @@
   },
   "refresh": "5m",
   "time": {
-    "from": "now-30d",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {}
