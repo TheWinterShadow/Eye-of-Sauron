@@ -1,0 +1,48 @@
+server:
+  listen_address: :8080
+  metrics:
+    enabled: true
+    enable_openmetrics_encoding: true
+
+gitlab:
+  url: https://gitlab.com
+  enable_health_check: true
+  enable_tls_verify: true
+
+project_defaults:
+  output_sparse_status_metrics: true
+  pull:
+    environments:
+      enabled: false
+    refs:
+      branches:
+        enabled: true
+        regexp: "^(main|master|develop)$"
+        most_recent: 0
+        exclude_deleted: true
+      tags:
+        enabled: true
+        regexp: "^v.*"
+        most_recent: 5
+        exclude_deleted: true
+      merge_requests:
+        enabled: false
+    pipeline:
+      jobs:
+        enabled: true
+        from_child_pipelines:
+          enabled: true
+        runner_description:
+          enabled: true
+      variables:
+        enabled: false
+      test_reports:
+        enabled: false
+
+wildcards:
+  - owner:
+      # This will be overridden by GCPE_GITLAB_GROUP env var if set
+      name: ${GITLAB_GROUP:-my-org}
+      kind: group
+      include_subgroups: true
+    archived: false

@@ -1,0 +1,48 @@
+// Scrape GitLab CI exporter
+prometheus.scrape "gitlab_ci" {
+  targets = [
+    {"__address__" = "gitlab-ci-exporter:8080"},
+  ]
+  forward_to      = [prometheus.relabel.drop_internal.receiver]
+  scrape_interval = "60s"
+  scrape_timeout  = "15s"
+}
+
+// Scrape GitHub Actions exporter
+prometheus.scrape "github_actions" {
+  targets = [
+    {"__address__" = "github-actions-exporter:9999"},
+  ]
+  forward_to      = [prometheus.relabel.drop_internal.receiver]
+  scrape_interval = "60s"
+  scrape_timeout  = "15s"
+}
+
+// Drop internal exporter metrics to save series quota
+prometheus.relabel "drop_internal" {
+  forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+  
+  rule {
+    source_labels = ["__name__"]
+    regex         = "^(gcpe_|go_|process_|promhttp_).*"
+    action        = "drop"
+  }
+}
+
+// Push to Grafana Cloud
+prometheus.remote_write "grafana_cloud" {
+  endpoint {
+    url = env("GRAFANA_CLOUD_PROMETHEUS_URL")
+    
+    basic_auth {
+      username = env("GRAFANA_CLOUD_PROMETHEUS_USER")
+      password = env("GRAFANA_CLOUD_API_KEY")
+    }
+  }
+  
+  wal {
+    truncate_frequency = "2h"
+    min_keepalive_time = "5m"
+    max_keepalive_time = "8h"
+  }
+}

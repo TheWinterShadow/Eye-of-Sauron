@@ -1,0 +1,25 @@
+{
+  "uid": "pipeline-failure-alert",
+  "title": "CI Pipeline Failure",
+  "condition": "A",
+  "data": [
+    {
+      "refId": "A",
+      "queryType": "prometheus",
+      "model": {
+        "expr": "gitlab_ci_pipeline_status{status=\"failed\"} == 1",
+        "intervalMs": 60000,
+        "maxDataPoints": 43200
+      }
+    }
+  ],
+  "noDataState": "NoData",
+  "execErrState": "Alerting",
+  "for": "5m",
+  "annotations": {
+    "summary": "CI pipeline {{ $labels.project }} failed"
+  },
+  "labels": {
+    "severity": "warning"
+  }
+}

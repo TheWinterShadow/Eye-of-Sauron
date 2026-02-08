@@ -1,0 +1,92 @@
+name: Deploy to Grafana Cloud
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'grafana-cloud/**'
+      - '.github/workflows/deploy-grafana-cloud.yml'
+  workflow_dispatch:
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      datasources_changed: ${{ steps.changes.outputs.datasources }}
+      dashboards_changed: ${{ steps.changes.outputs.dashboards }}
+      alerts_changed: ${{ steps.changes.outputs.alerts }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changes
+        id: changes
+        run: |
+          if git diff --name-only HEAD~1 HEAD | grep -q '^grafana-cloud/datasources/'; then
+            echo "datasources=true" >> $GITHUB_OUTPUT
+          else
+            echo "datasources=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if git diff --name-only HEAD~1 HEAD | grep -q '^grafana-cloud/dashboards/'; then
+            echo "dashboards=true" >> $GITHUB_OUTPUT
+          else
+            echo "dashboards=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if git diff --name-only HEAD~1 HEAD | grep -q '^grafana-cloud/alerts/'; then
+            echo "alerts=true" >> $GITHUB_OUTPUT
+          else
+            echo "alerts=false" >> $GITHUB_OUTPUT
+          fi
+
+  deploy-datasources:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.datasources_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy datasources
+        env:
+          GRAFANA_CLOUD_URL: ${{ secrets.GRAFANA_CLOUD_URL }}
+          GRAFANA_CLOUD_API_KEY: ${{ secrets.GRAFANA_CLOUD_API_KEY }}
+        run: |
+          chmod +x scripts/deploy-datasources.sh
+          ./scripts/deploy-datasources.sh
+
+  deploy-dashboards:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.dashboards_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy dashboards
+        env:
+          GRAFANA_CLOUD_URL: ${{ secrets.GRAFANA_CLOUD_URL }}
+          GRAFANA_CLOUD_API_KEY: ${{ secrets.GRAFANA_CLOUD_API_KEY }}
+        run: |
+          chmod +x scripts/deploy-dashboards.sh
+          ./scripts/deploy-dashboards.sh
+
+  deploy-alerts:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.alerts_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy alert rules
+        env:
+          GRAFANA_CLOUD_URL: ${{ secrets.GRAFANA_CLOUD_URL }}
+          GRAFANA_CLOUD_API_KEY: ${{ secrets.GRAFANA_CLOUD_API_KEY }}
+        run: |
+          chmod +x scripts/deploy-alerts.sh
+          ./scripts/deploy-alerts.sh

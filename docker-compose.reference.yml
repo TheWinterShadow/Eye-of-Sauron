@@ -1,0 +1,67 @@
+version: '3.8'
+
+# REFERENCE ONLY - NOT USED FOR DEPLOYMENT
+# This file shows the equivalent docker compose configuration
+# The Raspberry Pi will use 'docker run' commands instead
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  alloy_data:
+
+services:
+  gitlab-ci-exporter:
+    image: thewintershadow/gitlab-ci-exporter:latest
+    container_name: gitlab-ci-exporter
+    environment:
+      - GCPE_GITLAB_TOKEN=${GITLAB_TOKEN}
+      - GITLAB_GROUP=${GITLAB_GROUP}
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  github-actions-exporter:
+    image: thewintershadow/github-actions-exporter:latest
+    container_name: github-actions-exporter
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_ORGAS=${GITHUB_ORGAS}
+      - GITHUB_REPOS=${GITHUB_REPOS:-}
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9999/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  grafana-alloy:
+    image: thewintershadow/grafana-alloy:latest
+    container_name: grafana-alloy
+    environment:
+      - GRAFANA_CLOUD_PROMETHEUS_URL=${GRAFANA_CLOUD_PROMETHEUS_URL}
+      - GRAFANA_CLOUD_PROMETHEUS_USER=${GRAFANA_CLOUD_PROMETHEUS_USER}
+      - GRAFANA_CLOUD_API_KEY=${GRAFANA_CLOUD_API_KEY}
+    volumes:
+      - alloy_data:/var/lib/alloy
+    ports:
+      - "12345:12345"
+    networks:
+      - monitoring
+    depends_on:
+      - gitlab-ci-exporter
+      - github-actions-exporter
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:12345/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5

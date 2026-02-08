@@ -1,0 +1,14 @@
+{
+  "uid": "prometheus-cicd",
+  "name": "Prometheus (CI/CD Metrics)",
+  "type": "prometheus",
+  "access": "proxy",
+  "url": "http://prometheus:9090",
+  "isDefault": true,
+  "jsonData": {
+    "httpMethod": "POST",
+    "timeInterval": "60s"
+  },
+  "secureJsonData": {},
+  "readOnly": false
+}

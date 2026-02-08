@@ -1,0 +1,25 @@
+# Environment files
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Secrets
+secrets/
+*.secret
+*.pem
+*.key
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build artifacts
+dist/
+build/
