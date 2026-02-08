@@ -14,7 +14,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
 # Stage 2: Minimal runtime image
 FROM alpine:latest
 
-RUN apk --no-cache add ca-certificates wget
+RUN apk --no-cache add ca-certificates wget jq
 
 COPY --from=builder /out/github-actions-exporter /app/github-actions-exporter
 COPY entrypoint.sh /entrypoint.sh

@@ -18,6 +18,7 @@ services:
     environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - GITHUB_ORGAS=${GITHUB_ORGAS}
+      - GITHUB_USERS=${GITHUB_USERS:-}
       - GITHUB_REPOS=${GITHUB_REPOS:-}
     networks:
       - monitoring
