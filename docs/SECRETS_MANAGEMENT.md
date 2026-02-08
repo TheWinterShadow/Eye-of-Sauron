@@ -30,13 +30,9 @@ These secrets are used by the Docker containers running on your Pi.
 Create a `.env` file on your Raspberry Pi with:
 
 ```bash
-# GitLab
-GITLAB_TOKEN=glpat-xxxxxxxxxxxxxxxxxxxx
-GITLAB_GROUP=your-gitlab-group
-
 # GitHub
 GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-GITHUB_ORGAS=your-org,another-org
+GITHUB_ORGAS=TheWinterShadow,HorizonSec
 GITHUB_REPOS=
 
 # Grafana Cloud (for Alloy to push metrics)
@@ -52,7 +48,6 @@ chmod 600 .env
 
 ## Token Permissions
 
-**GitLab PAT:** `read_api` scope only
 **GitHub PAT:** `repo` + `read:org` scopes
 **Grafana Cloud API Key (for Actions):** Editor role (to create/update dashboards)
 **Grafana Cloud API Key (for Alloy):** MetricsPublisher role (to push metrics)

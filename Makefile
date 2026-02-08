@@ -1,4 +1,4 @@
-.PHONY: help build-local test-gitlab test-github test-alloy bump-patch bump-minor bump-major
+.PHONY: help build-local test-github test-alloy bump-patch bump-minor bump-major
 
 .DEFAULT_GOAL := help
 
@@ -7,12 +7,8 @@ help: ## Show available commands
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[33m%-20s\033[0m %s\n", $$1, $$2}'
 
 build-local: ## Build all images locally (for testing)
-	docker build -t gitlab-ci-exporter:local docker/gitlab-ci-exporter/
 	docker build -t github-actions-exporter:local docker/github-actions-exporter/
 	docker build -t grafana-alloy:local docker/grafana-alloy/
-
-test-gitlab: ## Test GitLab exporter locally
-	docker run --rm --env-file .env gitlab-ci-exporter:local
 
 test-github: ## Test GitHub Actions exporter locally
 	docker run --rm --env-file .env github-actions-exporter:local

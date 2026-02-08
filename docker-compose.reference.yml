@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 # REFERENCE ONLY - NOT USED FOR DEPLOYMENT
 # This file shows the equivalent docker compose configuration
@@ -12,21 +12,6 @@ volumes:
   alloy_data:
 
 services:
-  gitlab-ci-exporter:
-    image: thewintershadow/gitlab-ci-exporter:latest
-    container_name: gitlab-ci-exporter
-    environment:
-      - GCPE_GITLAB_TOKEN=${GITLAB_TOKEN}
-      - GITLAB_GROUP=${GITLAB_GROUP}
-    networks:
-      - monitoring
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/metrics"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   github-actions-exporter:
     image: thewintershadow/github-actions-exporter:latest
     container_name: github-actions-exporter
@@ -57,7 +42,6 @@ services:
     networks:
       - monitoring
     depends_on:
-      - gitlab-ci-exporter
       - github-actions-exporter
     restart: unless-stopped
     healthcheck:

@@ -1,13 +1,3 @@
-// Scrape GitLab CI exporter
-prometheus.scrape "gitlab_ci" {
-  targets = [
-    {"__address__" = "gitlab-ci-exporter:8080"},
-  ]
-  forward_to      = [prometheus.relabel.drop_internal.receiver]
-  scrape_interval = "60s"
-  scrape_timeout  = "15s"
-}
-
 // Scrape GitHub Actions exporter
 prometheus.scrape "github_actions" {
   targets = [

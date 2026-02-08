@@ -1,13 +1,13 @@
 {
-  "uid": "pipeline-failure-alert",
-  "title": "CI Pipeline Failure",
+  "uid": "workflow-failure-alert",
+  "title": "GitHub Actions Workflow Failure",
   "condition": "A",
   "data": [
     {
       "refId": "A",
       "queryType": "prometheus",
       "model": {
-        "expr": "gitlab_ci_pipeline_status{status=\"failed\"} == 1",
+        "expr": "github_actions_workflow_run_status{status=\"failure\"} == 1",
         "intervalMs": 60000,
         "maxDataPoints": 43200
       }
@@ -17,7 +17,7 @@
   "execErrState": "Alerting",
   "for": "5m",
   "annotations": {
-    "summary": "CI pipeline {{ $labels.project }} failed"
+    "summary": "GitHub Actions workflow {{ $labels.workflow }} in {{ $labels.repo }} failed"
   },
   "labels": {
     "severity": "warning"

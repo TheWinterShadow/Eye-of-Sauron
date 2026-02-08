@@ -14,28 +14,17 @@ This repository does NOT manage the Pi deployment - it only builds and publishes
 
 ### 1. Pull latest images
 ```bash
-docker pull thewintershadow/gitlab-ci-exporter:latest
 docker pull thewintershadow/github-actions-exporter:latest
 docker pull thewintershadow/grafana-alloy:latest
 ```
 
 ### 2. Stop and remove old containers
 ```bash
-docker stop gitlab-ci-exporter github-actions-exporter grafana-alloy || true
-docker rm gitlab-ci-exporter github-actions-exporter grafana-alloy || true
+docker stop github-actions-exporter grafana-alloy || true
+docker rm github-actions-exporter grafana-alloy || true
 ```
 
-### 3. Run GitLab CI Exporter
-```bash
-docker run -d \
-  --name gitlab-ci-exporter \
-  --network monitoring \
-  --env-file .env \
-  --restart unless-stopped \
-  thewintershadow/gitlab-ci-exporter:latest
-```
-
-### 4. Run GitHub Actions Exporter
+### 3. Run GitHub Actions Exporter
 ```bash
 docker run -d \
   --name github-actions-exporter \
@@ -45,7 +34,7 @@ docker run -d \
   thewintershadow/github-actions-exporter:latest
 ```
 
-### 5. Run Grafana Alloy
+### 4. Run Grafana Alloy
 ```bash
 docker run -d \
   --name grafana-alloy \
@@ -67,7 +56,6 @@ curl http://localhost:12345/ready
 
 # View logs
 docker logs grafana-alloy
-docker logs gitlab-ci-exporter
 docker logs github-actions-exporter
 ```
 

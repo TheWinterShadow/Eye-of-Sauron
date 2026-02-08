@@ -32,9 +32,11 @@ Replace `thewintershadow` in:
 - `docs/RASPBERRY_PI_DEPLOYMENT.md`
 
 ### 4. Configure exporters
-Edit these files with your GitLab/GitHub settings:
-- `docker/gitlab-ci-exporter/config.yml`
-- `docker/grafana-alloy/config.alloy`
+Create `.env` from `.env.example` and add your GitHub token:
+```bash
+cp .env.example .env
+# Edit .env and add your GITHUB_TOKEN
+```
 
 ### 5. Push to main branch
 ```bash
@@ -98,11 +100,10 @@ git push
 
 # View Pi container logs
 docker logs grafana-alloy
-docker logs gitlab-ci-exporter  
 docker logs github-actions-exporter
 
 # Verify metrics flowing to Grafana Cloud
-# Grafana Cloud → Explore → Query: gitlab_ci_pipeline_status
+# Grafana Cloud → Explore → Query: github_actions_workflow_run_status
 ```
 
 ## Repository Structure
@@ -111,7 +112,6 @@ docker logs github-actions-exporter
 ci-cd-monitoring/
 ├── .github/workflows/     # GitHub Actions CI/CD
 ├── docker/                # Custom Docker images
-│   ├── gitlab-ci-exporter/
 │   ├── github-actions-exporter/
 │   └── grafana-alloy/
 ├── grafana-cloud/         # Grafana Cloud configs (GitOps)
