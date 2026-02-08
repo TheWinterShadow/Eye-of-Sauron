@@ -15,38 +15,20 @@
       "id": 1,
       "type": "stat",
       "title": "Active Projects",
-      "gridPos": {
-        "h": 4,
-        "w": 8,
-        "x": 0,
-        "y": 0
-      },
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 0 },
       "targets": [
         {
           "expr": "count(sum by (repo) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json repo [$__range])))",
           "refId": "A",
           "queryType": "instant",
-          "datasource": {
-            "type": "loki",
-            "uid": "${datasource}"
-          }
+          "datasource": { "type": "loki", "uid": "${datasource}" }
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "none",
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "value": null,
-                "color": "blue"
-              }
-            ]
-          }
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "blue" }] }
         }
       },
       "options": {
@@ -54,13 +36,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       }
     },
@@ -69,44 +45,25 @@
       "type": "stat",
       "title": "Success Rate",
       "description": "Percentage of successful runs across all projects",
-      "gridPos": {
-        "h": 4,
-        "w": 8,
-        "x": 8,
-        "y": 0
-      },
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 0 },
       "targets": [
         {
           "expr": "sum(count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json conclusion | conclusion=\"success\" [$__range])) / sum(count_over_time({job=\"github-actions-collector\", org=~\"$org\"} [$__range]))",
           "refId": "A",
           "queryType": "instant",
-          "datasource": {
-            "type": "loki",
-            "uid": "${datasource}"
-          }
+          "datasource": { "type": "loki", "uid": "${datasource}" }
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
-          "color": {
-            "mode": "thresholds"
-          },
+          "color": { "mode": "thresholds" },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "value": null,
-                "color": "red"
-              },
-              {
-                "value": 0.8,
-                "color": "yellow"
-              },
-              {
-                "value": 0.95,
-                "color": "green"
-              }
+              { "value": null, "color": "red" },
+              { "value": 0.8, "color": "yellow" },
+              { "value": 0.95, "color": "green" }
             ]
           }
         }
@@ -116,13 +73,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       }
     },
@@ -130,40 +81,24 @@
       "id": 3,
       "type": "stat",
       "title": "Projects with Failures",
-      "gridPos": {
-        "h": 4,
-        "w": 8,
-        "x": 16,
-        "y": 0
-      },
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 0 },
       "targets": [
         {
           "expr": "count(sum by (repo) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json conclusion | conclusion=~\"failure|cancelled\" [$__range])))",
           "refId": "A",
           "queryType": "instant",
-          "datasource": {
-            "type": "loki",
-            "uid": "${datasource}"
-          }
+          "datasource": { "type": "loki", "uid": "${datasource}" }
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "none",
-          "color": {
-            "mode": "thresholds"
-          },
+          "color": { "mode": "thresholds" },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "value": null,
-                "color": "green"
-              },
-              {
-                "value": 1,
-                "color": "red"
-              }
+              { "value": null, "color": "green" },
+              { "value": 1, "color": "red" }
             ]
           }
         }
@@ -173,340 +108,91 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       }
     },
     {
       "id": 4,
       "type": "table",
-      "title": "Latest Run Per Workflow",
-      "gridPos": {
-        "h": 14,
-        "w": 24,
-        "x": 0,
-        "y": 4
-      },
+      "title": "Latest Run Per Project",
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 4 },
       "targets": [
         {
           "expr": "{job=\"github-actions-collector\", org=~\"$org\"} | json",
           "refId": "A",
-          "datasource": {
-            "type": "loki",
-            "uid": "${datasource}"
-          },
-          "queryType": "range"
+          "queryType": "range",
+          "datasource": { "type": "loki", "uid": "${datasource}" }
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "align": "left",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          }
+          "custom": { "align": "left", "cellOptions": { "type": "auto" }, "inspect": false }
         },
         "overrides": [
           {
-            "matcher": {
-              "id": "byName",
-              "options": "conclusion"
-            },
+            "matcher": { "id": "byName", "options": "conclusion" },
             "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
-              },
+              { "id": "custom.cellOptions", "value": { "type": "color-text" } },
               {
                 "id": "mappings",
                 "value": [
                   {
                     "type": "value",
                     "options": {
-                      "success": {
-                        "text": "Success",
-                        "color": "green",
-                        "index": 0
-                      },
-                      "failure": {
-                        "text": "Failed",
-                        "color": "red",
-                        "index": 1
-                      },
-                      "cancelled": {
-                        "text": "Cancelled",
-                        "color": "yellow",
-                        "index": 2
-                      },
-                      "skipped": {
-                        "text": "Skipped",
-                        "color": "orange",
-                        "index": 3
-                      }
+                      "success": { "text": "Success", "color": "green", "index": 0 },
+                      "failure": { "text": "Failed", "color": "red", "index": 1 },
+                      "cancelled": { "text": "Cancelled", "color": "yellow", "index": 2 },
+                      "skipped": { "text": "Skipped", "color": "orange", "index": 3 }
                     }
                   }
                 ]
               },
-              {
-                "id": "custom.width",
-                "value": 120
-              },
-              {
-                "id": "displayName",
-                "value": "Status"
-              }
+              { "id": "custom.width", "value": 120 },
+              { "id": "displayName", "value": "Status" }
             ]
           },
           {
-            "matcher": {
-              "id": "byName",
-              "options": "repo"
-            },
+            "matcher": { "id": "byName", "options": "repo" },
             "properties": [
-              {
-                "id": "custom.width",
-                "value": 250
-              },
-              {
-                "id": "displayName",
-                "value": "Repository"
-              }
+              { "id": "custom.width", "value": 280 },
+              { "id": "displayName", "value": "Repository" }
             ]
           },
           {
-            "matcher": {
-              "id": "byName",
-              "options": "workflow"
-            },
+            "matcher": { "id": "byName", "options": "workflow" },
             "properties": [
-              {
-                "id": "custom.width",
-                "value": 200
-              },
-              {
-                "id": "displayName",
-                "value": "Workflow"
-              }
+              { "id": "custom.width", "value": 200 },
+              { "id": "displayName", "value": "Latest Workflow" }
             ]
           },
           {
-            "matcher": {
-              "id": "byName",
-              "options": "branch"
-            },
+            "matcher": { "id": "byName", "options": "updated_at" },
             "properties": [
-              {
-                "id": "custom.width",
-                "value": 120
-              },
-              {
-                "id": "displayName",
-                "value": "Branch"
-              }
+              { "id": "unit", "value": "dateTimeFromNow" },
+              { "id": "custom.width", "value": 150 },
+              { "id": "displayName", "value": "Last Run" }
             ]
           },
           {
-            "matcher": {
-              "id": "byName",
-              "options": "duration_seconds"
-            },
+            "matcher": { "id": "byName", "options": "duration_seconds" },
             "properties": [
-              {
-                "id": "unit",
-                "value": "s"
-              },
-              {
-                "id": "custom.width",
-                "value": 100
-              },
-              {
-                "id": "displayName",
-                "value": "Duration"
-              }
+              { "id": "unit", "value": "s" },
+              { "id": "custom.width", "value": 100 },
+              { "id": "displayName", "value": "Duration" }
             ]
           },
           {
-            "matcher": {
-              "id": "byName",
-              "options": "updated_at"
-            },
+            "matcher": { "id": "byName", "options": "actor" },
             "properties": [
-              {
-                "id": "unit",
-                "value": "dateTimeFromNow"
-              },
-              {
-                "id": "custom.width",
-                "value": 150
-              },
-              {
-                "id": "displayName",
-                "value": "Last Run"
-              }
+              { "id": "custom.width", "value": 120 },
+              { "id": "displayName", "value": "Triggered By" }
             ]
           },
           {
-            "matcher": {
-              "id": "byName",
-              "options": "actor"
-            },
+            "matcher": { "id": "byRegexp", "options": "^(branch|sha|sha_full|run_id|run_number|html_url|status|event|created_at|run_started_at|id|tsNs|labels|Time|Line|__name__|instance|job|org)$" },
             "properties": [
-              {
-                "id": "custom.width",
-                "value": 120
-              },
-              {
-                "id": "displayName",
-                "value": "Triggered By"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "sha"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 100
-              },
-              {
-                "id": "displayName",
-                "value": "Commit"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "run_id"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 100
-              },
-              {
-                "id": "displayName",
-                "value": "Run #"
-              },
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "View Run",
-                    "url": "${__data.fields.html_url}",
-                    "targetBlank": true
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "html_url"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "sha_full"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "status"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "event"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "created_at"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "run_started_at"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "run_number"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "^(id|tsNs|labels|Time|Line|__name__|instance|job|org)$"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
+              { "id": "custom.hidden", "value": true }
             ]
           }
         ]
@@ -514,70 +200,18 @@
       "transformations": [
         {
           "id": "extractFields",
-          "options": {
-            "source": "Line"
-          }
+          "options": { "source": "Line" }
         },
         {
           "id": "groupBy",
           "options": {
             "fields": {
-              "repo": {
-                "aggregations": [],
-                "operation": "groupby"
-              },
-              "workflow": {
-                "aggregations": [],
-                "operation": "groupby"
-              },
-              "conclusion": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
-                "operation": "aggregate"
-              },
-              "branch": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
-                "operation": "aggregate"
-              },
-              "duration_seconds": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
-                "operation": "aggregate"
-              },
-              "updated_at": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
-                "operation": "aggregate"
-              },
-              "actor": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
-                "operation": "aggregate"
-              },
-              "sha": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
-                "operation": "aggregate"
-              },
-              "run_id": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
-                "operation": "aggregate"
-              },
-              "html_url": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
-                "operation": "aggregate"
-              }
+              "repo": { "aggregations": [], "operation": "groupby" },
+              "workflow": { "aggregations": ["lastNotNull"], "operation": "aggregate" },
+              "conclusion": { "aggregations": ["lastNotNull"], "operation": "aggregate" },
+              "duration_seconds": { "aggregations": ["lastNotNull"], "operation": "aggregate" },
+              "updated_at": { "aggregations": ["lastNotNull"], "operation": "aggregate" },
+              "actor": { "aggregations": ["lastNotNull"], "operation": "aggregate" }
             }
           }
         },
@@ -585,12 +219,7 @@
           "id": "sortBy",
           "options": {
             "fields": {},
-            "sort": [
-              {
-                "field": "updated_at (lastNotNull)",
-                "desc": true
-              }
-            ]
+            "sort": [{ "field": "updated_at (lastNotNull)", "desc": true }]
           }
         },
         {
@@ -598,15 +227,174 @@
           "options": {
             "indexByName": {
               "repo": 0,
-              "workflow": 1,
+              "workflow (lastNotNull)": 1,
               "conclusion (lastNotNull)": 2,
-              "branch (lastNotNull)": 3,
-              "duration_seconds (lastNotNull)": 4,
-              "updated_at (lastNotNull)": 5,
-              "actor (lastNotNull)": 6,
-              "sha (lastNotNull)": 7,
-              "run_id (lastNotNull)": 8,
-              "html_url (lastNotNull)": 9
+              "duration_seconds (lastNotNull)": 3,
+              "updated_at (lastNotNull)": 4,
+              "actor (lastNotNull)": 5
+            },
+            "renameByName": {
+              "workflow (lastNotNull)": "workflow",
+              "conclusion (lastNotNull)": "conclusion",
+              "duration_seconds (lastNotNull)": "duration_seconds",
+              "updated_at (lastNotNull)": "updated_at",
+              "actor (lastNotNull)": "actor"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": { "show": false },
+        "sortBy": [{ "desc": true, "displayName": "Last Run" }]
+      }
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Workflow Details — ${repo:text}",
+      "description": "Select a repository from the dropdown above to see all its workflows",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "expr": "{job=\"github-actions-collector\", org=~\"$org\"} | json | repo=~\"$repo\"",
+          "refId": "A",
+          "queryType": "range",
+          "datasource": { "type": "loki", "uid": "${datasource}" }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "left", "cellOptions": { "type": "auto" }, "inspect": false }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "conclusion" },
+            "properties": [
+              { "id": "custom.cellOptions", "value": { "type": "color-text" } },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "success": { "text": "Success", "color": "green", "index": 0 },
+                      "failure": { "text": "Failed", "color": "red", "index": 1 },
+                      "cancelled": { "text": "Cancelled", "color": "yellow", "index": 2 },
+                      "skipped": { "text": "Skipped", "color": "orange", "index": 3 }
+                    }
+                  }
+                ]
+              },
+              { "id": "custom.width", "value": 120 },
+              { "id": "displayName", "value": "Status" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "workflow" },
+            "properties": [
+              { "id": "custom.width", "value": 250 },
+              { "id": "displayName", "value": "Workflow" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "branch" },
+            "properties": [
+              { "id": "custom.width", "value": 120 },
+              { "id": "displayName", "value": "Branch" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "duration_seconds" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "custom.width", "value": 100 },
+              { "id": "displayName", "value": "Duration" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "updated_at" },
+            "properties": [
+              { "id": "unit", "value": "dateTimeFromNow" },
+              { "id": "custom.width", "value": 150 },
+              { "id": "displayName", "value": "Last Run" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "actor" },
+            "properties": [
+              { "id": "custom.width", "value": 120 },
+              { "id": "displayName", "value": "Triggered By" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "sha" },
+            "properties": [
+              { "id": "custom.width", "value": 100 },
+              { "id": "displayName", "value": "Commit" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "run_id" },
+            "properties": [
+              { "id": "custom.width", "value": 100 },
+              { "id": "displayName", "value": "Run #" },
+              {
+                "id": "links",
+                "value": [{ "title": "View on GitHub", "url": "${__data.fields.html_url}", "targetBlank": true }]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": "^(repo|html_url|sha_full|status|event|created_at|run_started_at|run_number|id|tsNs|labels|Time|Line|__name__|instance|job|org)$" },
+            "properties": [
+              { "id": "custom.hidden", "value": true }
+            ]
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": { "source": "Line" }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "workflow": { "aggregations": [], "operation": "groupby" },
+              "conclusion": { "aggregations": ["lastNotNull"], "operation": "aggregate" },
+              "branch": { "aggregations": ["lastNotNull"], "operation": "aggregate" },
+              "duration_seconds": { "aggregations": ["lastNotNull"], "operation": "aggregate" },
+              "updated_at": { "aggregations": ["lastNotNull"], "operation": "aggregate" },
+              "actor": { "aggregations": ["lastNotNull"], "operation": "aggregate" },
+              "sha": { "aggregations": ["lastNotNull"], "operation": "aggregate" },
+              "run_id": { "aggregations": ["lastNotNull"], "operation": "aggregate" },
+              "html_url": { "aggregations": ["lastNotNull"], "operation": "aggregate" }
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [{ "field": "updated_at (lastNotNull)", "desc": true }]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "workflow": 0,
+              "conclusion (lastNotNull)": 1,
+              "branch (lastNotNull)": 2,
+              "duration_seconds (lastNotNull)": 3,
+              "updated_at (lastNotNull)": 4,
+              "actor (lastNotNull)": 5,
+              "sha (lastNotNull)": 6,
+              "run_id (lastNotNull)": 7,
+              "html_url (lastNotNull)": 8
             },
             "renameByName": {
               "conclusion (lastNotNull)": "conclusion",
@@ -624,213 +412,111 @@
       "options": {
         "showHeader": true,
         "cellHeight": "sm",
-        "footer": {
-          "show": false
-        },
-        "sortBy": [
-          {
-            "desc": true,
-            "displayName": "Last Run"
-          }
-        ]
+        "footer": { "show": false },
+        "sortBy": [{ "desc": true, "displayName": "Last Run" }]
       }
     },
     {
       "id": 5,
       "type": "table",
       "title": "Project Health Summary",
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 18
-      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 26 },
       "targets": [
         {
           "expr": "sum by (repo) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json repo [$__range]))",
           "refId": "A",
           "legendFormat": "{{repo}}",
           "queryType": "instant",
-          "datasource": {
-            "type": "loki",
-            "uid": "${datasource}"
-          }
+          "datasource": { "type": "loki", "uid": "${datasource}" }
         },
         {
           "expr": "sum by (repo) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json repo, conclusion | conclusion=\"success\" [$__range]))",
           "refId": "B",
           "legendFormat": "{{repo}}",
           "queryType": "instant",
-          "datasource": {
-            "type": "loki",
-            "uid": "${datasource}"
-          }
+          "datasource": { "type": "loki", "uid": "${datasource}" }
         },
         {
           "expr": "avg by (repo) (avg_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json repo, duration_seconds | unwrap duration_seconds [$__range]))",
           "refId": "C",
           "legendFormat": "{{repo}}",
           "queryType": "instant",
-          "datasource": {
-            "type": "loki",
-            "uid": "${datasource}"
-          }
+          "datasource": { "type": "loki", "uid": "${datasource}" }
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "align": "left",
-            "cellOptions": {
-              "type": "auto"
-            }
-          }
+          "custom": { "align": "left", "cellOptions": { "type": "auto" } }
         },
         "overrides": [
           {
-            "matcher": {
-              "id": "byName",
-              "options": "repo"
-            },
+            "matcher": { "id": "byName", "options": "repo" },
             "properties": [
-              {
-                "id": "custom.width",
-                "value": 250
-              },
-              {
-                "id": "displayName",
-                "value": "Repository"
-              }
+              { "id": "custom.width", "value": 250 },
+              { "id": "displayName", "value": "Repository" }
             ]
           },
           {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #A"
-            },
+            "matcher": { "id": "byName", "options": "Value #A" },
             "properties": [
-              {
-                "id": "custom.width",
-                "value": 100
-              },
-              {
-                "id": "displayName",
-                "value": "Total Runs"
-              }
+              { "id": "custom.width", "value": 100 },
+              { "id": "displayName", "value": "Total Runs" }
             ]
           },
           {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #B"
-            },
+            "matcher": { "id": "byName", "options": "Value #B" },
             "properties": [
-              {
-                "id": "custom.width",
-                "value": 100
-              },
-              {
-                "id": "displayName",
-                "value": "Successes"
-              }
+              { "id": "custom.width", "value": 100 },
+              { "id": "displayName", "value": "Successes" }
             ]
           },
           {
-            "matcher": {
-              "id": "byName",
-              "options": "Success Rate"
-            },
+            "matcher": { "id": "byName", "options": "Success Rate" },
             "properties": [
-              {
-                "id": "unit",
-                "value": "percent"
-              },
-              {
-                "id": "custom.width",
-                "value": 150
-              },
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.width", "value": 150 },
               {
                 "id": "custom.cellOptions",
-                "value": {
-                  "mode": "gradient",
-                  "type": "gauge"
-                }
+                "value": { "mode": "gradient", "type": "gauge" }
               },
               {
                 "id": "thresholds",
                 "value": {
                   "mode": "absolute",
                   "steps": [
-                    {
-                      "value": null,
-                      "color": "red"
-                    },
-                    {
-                      "value": 80,
-                      "color": "yellow"
-                    },
-                    {
-                      "value": 95,
-                      "color": "green"
-                    }
+                    { "value": null, "color": "red" },
+                    { "value": 80, "color": "yellow" },
+                    { "value": 95, "color": "green" }
                   ]
                 }
               }
             ]
           },
           {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #C"
-            },
+            "matcher": { "id": "byName", "options": "Value #C" },
             "properties": [
-              {
-                "id": "unit",
-                "value": "s"
-              },
-              {
-                "id": "custom.width",
-                "value": 120
-              },
-              {
-                "id": "displayName",
-                "value": "Avg Duration"
-              }
+              { "id": "unit", "value": "s" },
+              { "id": "custom.width", "value": 120 },
+              { "id": "displayName", "value": "Avg Duration" }
             ]
           },
           {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "^Time.*"
-            },
+            "matcher": { "id": "byRegexp", "options": "^Time.*" },
             "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
+              { "id": "custom.hidden", "value": true }
             ]
           }
         ]
       },
       "transformations": [
-        {
-          "id": "merge",
-          "options": {}
-        },
+        { "id": "merge", "options": {} },
         {
           "id": "calculateField",
           "options": {
             "mode": "binary",
             "fieldName": "Success Rate",
-            "binary": {
-              "left": "Value #B",
-              "reducer": "sum",
-              "operator": "/",
-              "right": "Value #A"
-            },
-            "reduce": {
-              "reducer": "sum"
-            },
+            "binary": { "left": "Value #B", "reducer": "sum", "operator": "/", "right": "Value #A" },
+            "reduce": { "reducer": "sum" },
             "replaceFields": false
           }
         },
@@ -839,11 +525,7 @@
           "options": {
             "mode": "binary",
             "fieldName": "Success Rate",
-            "binary": {
-              "left": "Success Rate",
-              "operator": "*",
-              "right": "100"
-            },
+            "binary": { "left": "Success Rate", "operator": "*", "right": "100" },
             "replaceFields": false
           }
         },
@@ -851,49 +533,29 @@
           "id": "sortBy",
           "options": {
             "fields": {},
-            "sort": [
-              {
-                "field": "Success Rate",
-                "desc": false
-              }
-            ]
+            "sort": [{ "field": "Success Rate", "desc": false }]
           }
         }
       ],
       "options": {
         "showHeader": true,
         "cellHeight": "sm",
-        "footer": {
-          "show": false
-        },
-        "sortBy": [
-          {
-            "desc": false,
-            "displayName": "Success Rate"
-          }
-        ]
+        "footer": { "show": false },
+        "sortBy": [{ "desc": false, "displayName": "Success Rate" }]
       }
     },
     {
       "id": 6,
       "type": "timeseries",
       "title": "Workflow Runs Over Time",
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 28
-      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 36 },
       "targets": [
         {
           "expr": "sum by (conclusion) (count_over_time({job=\"github-actions-collector\", org=~\"$org\"} | json conclusion [$__interval]))",
           "refId": "A",
           "legendFormat": "{{conclusion}}",
           "queryType": "range",
-          "datasource": {
-            "type": "loki",
-            "uid": "${datasource}"
-          }
+          "datasource": { "type": "loki", "uid": "${datasource}" }
         }
       ],
       "fieldConfig": {
@@ -901,75 +563,29 @@
           "custom": {
             "drawStyle": "bars",
             "fillOpacity": 80,
-            "stacking": {
-              "mode": "normal",
-              "group": "A"
-            },
+            "stacking": { "mode": "normal", "group": "A" },
             "showPoints": "never"
           },
-          "color": {
-            "mode": "palette-classic"
-          }
+          "color": { "mode": "palette-classic" }
         },
         "overrides": [
           {
-            "matcher": {
-              "id": "byName",
-              "options": "success"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "green"
-                }
-              }
-            ]
+            "matcher": { "id": "byName", "options": "success" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }]
           },
           {
-            "matcher": {
-              "id": "byName",
-              "options": "failure"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "red"
-                }
-              }
-            ]
+            "matcher": { "id": "byName", "options": "failure" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }]
           },
           {
-            "matcher": {
-              "id": "byName",
-              "options": "cancelled"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "orange"
-                }
-              }
-            ]
+            "matcher": { "id": "byName", "options": "cancelled" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }]
           }
         ]
       },
       "options": {
-        "tooltip": {
-          "mode": "multi"
-        },
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": [
-            "sum"
-          ]
-        }
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["sum"] }
       }
     }
   ],
@@ -989,23 +605,27 @@
         "type": "query",
         "label": "Organization",
         "query": "label_values({job=\"github-actions-collector\"}, org)",
-        "datasource": {
-          "type": "loki",
-          "uid": "${datasource}"
-        },
+        "datasource": { "type": "loki", "uid": "${datasource}" },
         "multi": true,
         "includeAll": true,
         "allValue": ".+"
+      },
+      {
+        "name": "repo",
+        "type": "query",
+        "label": "Repository",
+        "query": "label_values({job=\"github-actions-collector\"} | json, repo)",
+        "datasource": { "type": "loki", "uid": "${datasource}" },
+        "multi": false,
+        "includeAll": true,
+        "allValue": ".+",
+        "sort": 1,
+        "refresh": 2
       }
     ]
   },
-  "annotations": {
-    "list": []
-  },
+  "annotations": { "list": [] },
   "refresh": "5m",
-  "time": {
-    "from": "now-7d",
-    "to": "now"
-  },
+  "time": { "from": "now-7d", "to": "now" },
   "timepicker": {}
 }
