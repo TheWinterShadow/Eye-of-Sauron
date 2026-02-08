@@ -13,26 +13,28 @@ This guide walks you through setting up Grafana Cloud for CI/CD monitoring.
    - Format: `https://yourorg.grafana.net`
    - This is your `GRAFANA_CLOUD_URL`
 
-## Step 3: Create API Keys
+## Step 3: Create Tokens
 
-### API Key for GitHub Actions (Dashboard Deployment)
-1. Navigate to: Grafana Cloud → Administration → API Keys
-2. Click "Add API key"
+### Service Account Token for GitHub Actions (Dashboard Deployment)
+1. Navigate to: Grafana Cloud → Administration → **Service accounts**
+2. Click "Add service account"
 3. Configure:
-   - **Name:** GitHub Actions Deployment
-   - **Role:** Editor (or Admin for full control)
-   - **Time to live:** Leave empty for no expiration
-4. Click "Add" and **copy the key immediately** (you won't see it again)
-5. Add this as `GRAFANA_CLOUD_API_KEY` in GitHub repository secrets
+   - **Name:** GitHub Actions
+   - **Role:** Editor (needs dashboards:create and dashboards:write permissions)
+4. Click "Add service account"
+5. Click "Add service account token"
+   - Name it "GitHub Actions Token"
+6. **Copy the token immediately** (starts with `glsa_`, you won't see it again)
+7. Add this as `GRAFANA_CLOUD_API_KEY` in GitHub repository secrets
 
-### API Key for Alloy (Metrics Publishing)
+### Cloud Access Policy Token for Alloy (Metrics Publishing)
 1. Navigate to: Grafana Cloud → Connections → Hosted Prometheus metrics
 2. Find the "Remote Write Endpoint" section
 3. Copy:
    - **Remote Write URL:** This is your `GRAFANA_CLOUD_PROMETHEUS_URL`
    - **User ID:** This is your `GRAFANA_CLOUD_PROMETHEUS_USER`
-   - **API Key:** Click "Generate now" or use existing key
-     - This is your `GRAFANA_CLOUD_API_KEY` for Alloy
+   - **API Key:** Click "Generate now" or use existing Cloud Access Policy token
+     - This is your `GRAFANA_CLOUD_API_KEY` for Alloy (starts with `glc_`)
      - **Copy immediately** (you won't see it again)
 
 ## Step 4: Verify Prometheus Datasource
@@ -48,8 +50,8 @@ This guide walks you through setting up Grafana Cloud for CI/CD monitoring.
 
 ## Step 6: Test API Access
 ```bash
-# Test API key works
-curl -H "Authorization: Bearer YOUR_API_KEY" \
+# Test service account token works
+curl -H "Authorization: Bearer YOUR_SERVICE_ACCOUNT_TOKEN" \
   https://yourorg.grafana.net/api/org
 
 # Should return JSON with your org details
@@ -57,10 +59,11 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
 
 ## Troubleshooting
 
-### API Key Not Working
-- Verify the key hasn't expired
-- Check the role has sufficient permissions (Editor or Admin)
+### Service Account Token Not Working
+- Verify the token hasn't been revoked
+- Check the service account has Editor role with dashboard permissions
 - Ensure you're using the correct Grafana Cloud URL
+- Verify you're using a Service Account Token (`glsa_*`), not the old API keys
 
 ### Metrics Not Appearing
 - Verify Alloy is running and connected
@@ -71,7 +74,8 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
 ### Dashboards Not Deploying
 - Check GitHub Actions workflow logs
 - Verify `GRAFANA_CLOUD_URL` and `GRAFANA_CLOUD_API_KEY` are set correctly
-- Ensure API key has Editor or Admin role
+- Ensure you're using a Service Account Token (`glsa_*`) with Editor role
+- Verify the service account has `dashboards:create` and `dashboards:write` permissions
 
 ## Free Tier Limits
 - **10,000 active series** (typically using 300-600 for CI/CD monitoring)

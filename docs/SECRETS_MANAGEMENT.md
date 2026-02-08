@@ -15,14 +15,14 @@ Add these secrets:
 
 **Grafana Cloud:**
 - `GRAFANA_CLOUD_URL` - Your Grafana Cloud instance URL (e.g., https://yourorg.grafana.net)
-- `GRAFANA_CLOUD_API_KEY` - Grafana Cloud API key with Admin or Editor role
+- `GRAFANA_CLOUD_API_KEY` - Grafana Cloud Service Account Token (starts with `glsa_`)
 
-To create Grafana Cloud API key:
-1. Go to Grafana Cloud → Administration → API Keys
-2. Click "Add API key"
-3. Name: "GitHub Actions Deployment"
-4. Role: Editor (or Admin for full control)
-5. Copy the key immediately (you won't see it again)
+To create Grafana Cloud Service Account Token:
+1. Go to Grafana Cloud → Administration → **Service accounts**
+2. Click "Add service account"
+3. Name: "GitHub Actions", Role: **Editor** (needs dashboards:create/write permissions)
+4. Click "Add service account token"
+5. Copy the token immediately (starts with `glsa_`, you won't see it again)
 
 ### 2. Raspberry Pi Secrets (for runtime)
 These secrets are used by the Docker containers running on your Pi.
@@ -49,7 +49,9 @@ chmod 600 .env
 ## Token Permissions
 
 **GitHub PAT:** `repo` + `read:org` scopes
-**Grafana Cloud API Key (for Actions):** Editor role (to create/update dashboards)
-**Grafana Cloud API Key (for Alloy):** MetricsPublisher role (to push metrics)
+**Grafana Cloud (for GitHub Actions):** Service Account Token with Editor role (`glsa_*`)
+**Grafana Cloud (for Alloy metrics):** Cloud Access Policy token with MetricsPublisher role (`glc_*`)
 
-Note: You can use different Grafana Cloud API keys for GitHub Actions vs Alloy, or use the same key with both permissions.
+Note: These are two different types of Grafana tokens:
+- Service Account Token (for API/dashboard management)
+- Cloud Access Policy token (for pushing metrics to Prometheus)
